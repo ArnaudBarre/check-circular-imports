@@ -1,4 +1,4 @@
-# check-circular-imports
+# check-circular-imports [![npm](https://img.shields.io/npm/v/@arnaud-barre/check-circular-imports)](https://www.npmjs.com/package/@arnaud-barre/check-circular-imports)
 
 Fast check for circular imports in a TS codebase based on Bun scanImports builtin.
 
@@ -6,14 +6,14 @@ Fast check for circular imports in a TS codebase based on Bun scanImports builti
 bun add --dev @arnaud-barre/check-circular-imports
 ```
 
-The check assume all source code imports are relative and use full path (extension + no index import).
+The check assume all source code imports are relative and use full path (extension + no index import) or [subpath imports](https://nodejs.org/api/packages.html#subpath-imports) from cwd (in v0.2).
 Imports other than `.ts` & `.tsx` are skipped.
 
 ```bash
 bun check-circular-imports <entryPoint>
 ```
 
-On a mac M1 for a codebase of ~400 TS files it runs in 50ms. 
+On a mac M1 for a codebase of ~400 TS files it runs in 50ms.
 
 ## Related
 

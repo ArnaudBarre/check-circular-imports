@@ -2,19 +2,22 @@
   "name": "@arnaud-barre/check-circular-imports",
   "description": "Fast check for circular imports in a TS codebase based on Bun scanImports builtin",
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "author": "Arnaud Barré (https://github.com/ArnaudBarre)",
   "license": "MIT",
   "repository": "github:ArnaudBarre/check-circular-imports",
   "files": [
     "index.ts"
   ],
+  "prettier": {
+    "experimentalOperatorPosition": "start"
+  },
   "bin": {
     "check-circular-imports": "index.ts"
   },
   "devDependencies": {
-    "bun-types": "^1.0.7",
-    "prettier": "^3.0.3",
-    "typescript": "^5.2.2"
+    "bun-types": "^1.2.23",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2"
   }
 }

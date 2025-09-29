@@ -1,12 +1,17 @@
 #!/usr/bin/env bun
 import { readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 const entryPoint = process.argv[2];
 if (!entryPoint || typeof Bun === "undefined") {
   console.log("Usage: bun check-circular-imports <entryPoint>");
   process.exit(1);
 }
+
+const pkgJson = JSON.parse(readFileSync("package.json", "utf-8"));
+const subpathImports = pkgJson.imports as
+  | Record<string, string | Record<string, string | undefined> | undefined>
+  | undefined;
 
 const tsxTranspiler = new Bun.Transpiler({ loader: "tsx" });
 const tsTranspiler = new Bun.Transpiler({ loader: "ts" });
@@ -44,6 +49,13 @@ const getImports = (path: string) => {
   const dir = dirname(path);
   const imports: string[] = [];
   for (const imp of transpiler.scanImports(content)) {
+    if (imp.path.startsWith("#")) {
+      let mapping = subpathImports?.[imp.path];
+      if (typeof mapping === "object") mapping = mapping["default"];
+      if (mapping === undefined) throw new Error(`Cannot resolve ${imp.path}`);
+      imports.push(join(process.cwd(), mapping));
+      continue;
+    }
     if (!imp.path.startsWith(".")) continue;
     if (imp.path.endsWith(".ts") || imp.path.endsWith(".tsx")) {
       imports.push(resolve(dir, imp.path));
