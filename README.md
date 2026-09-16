@@ -11,6 +11,7 @@ Imports other than `.ts` & `.tsx` are skipped.
 
 ```bash
 bun check-circular-imports <entryPoint>
+bun get-import-paths <entryPoint> <target> [--skip-dynamic-imports]
 ```
 
 On a mac M1 for a codebase of ~400 TS files it runs in 50ms.
