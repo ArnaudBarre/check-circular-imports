@@ -1,12 +1,5 @@
-#!/usr/bin/env bun
 import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-
-const entryPoint = process.argv[2];
-if (!entryPoint || typeof Bun === "undefined") {
-  console.log("Usage: bun check-circular-imports <entryPoint>");
-  process.exit(1);
-}
 
 const pkgJson = JSON.parse(readFileSync("package.json", "utf-8"));
 const subpathImports = pkgJson.imports as
@@ -18,7 +11,7 @@ const tsTranspiler = new Bun.Transpiler({ loader: "ts" });
 
 const graph = new Map<string, string[]>();
 
-const canReach = (from: string, target: string): boolean => {
+export const canReach = (from: string, target: string): boolean => {
   if (from === target) return true;
   const imports = graph.get(from);
   if (!imports) return false;
@@ -28,27 +21,30 @@ const canReach = (from: string, target: string): boolean => {
   return false;
 };
 
-const buildErrorMessage = (
-  message: string,
+export const buildPath = (
   from: string,
   target: string,
-): string | false => {
-  if (from === target) return message;
+  currentPath: string[] = [],
+): string[] | undefined => {
+  if (from === target) return [...currentPath, target];
   const imports = graph.get(from);
-  if (!imports) return false;
+  if (!imports) return undefined;
   for (const imp of imports) {
-    const fullMessage = buildErrorMessage(`${message} -> ${imp}`, imp, target);
-    if (fullMessage) return fullMessage;
+    const fullPath = buildPath(imp, target, [...currentPath, from]);
+    if (fullPath) return fullPath;
   }
-  return false;
 };
 
-const getImports = (path: string) => {
+export const buildGraph = (
+  path: string,
+  opts?: { skipDynamicImports?: boolean },
+) => {
   const transpiler = path.endsWith("x") ? tsxTranspiler : tsTranspiler;
   const content = readFileSync(path, "utf-8");
   const dir = dirname(path);
   const imports: string[] = [];
   for (const imp of transpiler.scanImports(content)) {
+    if (opts?.skipDynamicImports && imp.kind === "dynamic-import") continue;
     if (imp.path.startsWith("#")) {
       let mapping = subpathImports?.[imp.path];
       if (typeof mapping === "object") mapping = mapping["default"];
@@ -62,24 +58,12 @@ const getImports = (path: string) => {
     }
   }
 
-  for (const imp of imports) {
-    if (canReach(imp, path)) {
-      const fullMessage = buildErrorMessage(
-        `Circular import detected: ${imp}`,
-        imp,
-        path,
-      );
-      console.log(fullMessage);
-      process.exit(1);
-    }
-  }
-
   graph.set(path, imports);
 
   for (const imp of imports) {
     if (graph.has(imp)) continue;
-    getImports(imp);
+    buildGraph(imp, opts);
   }
-};
 
-getImports(resolve(entryPoint));
+  return graph;
+};

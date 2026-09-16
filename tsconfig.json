@@ -1,11 +1,11 @@
 {
-  "include": ["index.ts"],
+  "include": ["*.ts"],
   "compilerOptions": {
     "target": "ES2024",
     "module": "ESNext",
     "moduleDetection": "force",
     "lib": ["es2024"],
-    "types": ["bun-types"],
+    "types": ["bun"],
     "skipLibCheck": true,
 
     /* Bundler mode */
